@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "publishedAt": "2026-10-12T10:46:31.471Z",
+  "state": {
+    "version": 1,
+    "students": [
+      {
+        "id": "student-1",
+        "name": "孔雯",
+        "status": "active"
+      },
+      {
+        "id": "student-2",
+        "name": "赵政翔",
+        "status": "active"
+      },
+      {
+        "id": "student-3",
+        "name": "李艺芝",
+        "status": "active"
+      },
+      {
+        "id": "student-4",
+        "name": "马燕伟",
+        "status": "active"
+      },
+      {
+        "id": "student-5",
+        "name": "唐畅",
+        "status": "active"
+      },
+      {
+        "id": "student-6",
+        "name": "石子豪",
+        "status": "active"
+      },
+      {
+        "id": "student-7",
+        "name": "邓晓宇",
+        "status": "active"
+      },
+      {
+        "id": "student-8",
+        "name": "马瑞佳",
+        "status": "active"
+      },
+      {
+        "id": "student-9",
+        "name": "张壮",
+        "status": "active"
+      },
+      {
+        "id": "student-10",
+        "name": "刘慧",
+        "status": "active"
+      },
+      {
+        "id": "student-11",
+        "name": "构润哲",
+        "status": "active"
+      },
+      {
+        "id": "student-12",
+        "name": "宋佳奕",
+        "status": "active"
+      },
+      {
+        "id": "student-fa7ae554-5f65-48fb-9465-a2a4be3e4d1f",
+        "name": "侯凯杰艺",
+        "status": "active"
+      },
+      {
+        "id": "student-434bcbc5-b587-48cd-aa19-4ef282fd169a",
+        "name": "陈昊天",
+        "status": "active"
+      }
+    ],
+    "settings": {
+      "startDate": "2026-10-19",
+      "weeks": 20
+    },
+    "history": []
+  }
+}

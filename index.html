@@ -8,6 +8,7 @@
   <title>周一见 · 课题组组会排班</title>
   <link rel="stylesheet" href="styles.css">
   <script src="scheduler.js" defer></script>
+  <script src="publication.js" defer></script>
   <script src="app.js" defer></script>
 </head>
 <body>
@@ -21,12 +22,24 @@
       <button class="nav-item" data-view="settings"><span class="nav-symbol" aria-hidden="true">≡</span>排期设置</button>
     </nav>
     <div class="sidebar-note"><span class="monday-mark">MON</span><strong>每周一，一起交流。</strong><p>按顺序轮值，让每一次分享<br>都有准备。</p></div>
-    <div class="sidebar-bottom"><button id="theme-toggle" class="theme-button">切换深色外观</button><div class="local-label"><span class="status-dot"></span><span>数据保存在此浏览器</span></div></div>
+    <div class="sidebar-bottom"><button id="theme-toggle" class="theme-button">切换深色外观</button><div class="local-label"><span class="status-dot"></span><span id="source-label">GitHub 共享排期</span></div></div>
   </aside>
   <div class="app-shell">
-    <header class="topbar"><div class="breadcrumb">课题组 <span>/</span> <strong id="breadcrumb-current">排期总览</strong></div><div class="topbar-end"><span id="save-status" role="status">已保存到本机</span><span class="workspace-avatar" aria-label="课题组">组</span></div></header>
+    <header class="topbar"><div class="breadcrumb">课题组 <span>/</span> <strong id="breadcrumb-current">排期总览</strong></div><div class="topbar-end"><span id="save-status" role="status">读取共享排期中</span><span class="workspace-avatar" aria-label="课题组">组</span></div></header>
     <main id="main" tabindex="-1">
       <div id="storage-warning" class="warning-banner" role="alert" hidden></div>
+      <section class="sync-panel" aria-labelledby="sync-title">
+        <div class="sync-copy" role="status" aria-live="polite"><h2 id="sync-title">共享排期</h2><p id="sync-detail">正在读取 GitHub 上已发布的排期。</p></div>
+        <div class="sync-actions">
+          <button id="refresh-published" class="button secondary" type="button">刷新已发布排期</button>
+          <button id="edit-draft" class="button primary" type="button">编辑排期</button>
+          <button id="resume-draft" class="button secondary" type="button" hidden>继续本机草稿</button>
+          <button id="leave-draft" class="button secondary" type="button" hidden>查看已发布排期</button>
+          <button id="publish-draft" class="button primary" type="button" hidden>发布草稿</button>
+          <button id="discard-draft" class="button danger-subtle" type="button" hidden>舍弃草稿</button>
+        </div>
+        <p id="draft-notice" class="draft-notice" hidden>当前修改只保存在本机草稿中，发布后其他同学才能看到。普通访客可以起草，只有仓库写入权限的成员可以发布。</p>
+      </section>
       <section class="page-heading"><div><p id="page-kicker" class="page-kicker">每周一 / 一人主讲</p><h1 id="page-title">组会排班</h1><p id="page-description">把时间留给讨论，把排期交给这里。</p></div><div class="heading-actions"><div class="export-wrap"><button id="export-toggle" class="button secondary" aria-expanded="false" aria-controls="export-menu">导出排期 <span aria-hidden="true">↓</span></button><div id="export-menu" class="dropdown" hidden><button data-export="csv">下载排期 CSV</button><button data-export="print">打印 / 保存 PDF</button><button data-export="json">备份全部数据</button></div></div><button class="button primary" data-add><span aria-hidden="true">＋</span> 添加学生</button></div></section>
       <section id="overview-view" class="view">
         <div id="summary" class="summary-grid"></div>
@@ -36,12 +49,26 @@
         </div>
       </section>
       <section id="students-view" class="view" hidden><div class="students-toolbar"><div id="student-filters" class="segment-control" aria-label="按学生状态筛选"></div><label class="search-field"><span class="sr-only">搜索学生姓名</span><input id="student-search" type="search" placeholder="搜索学生姓名" autocomplete="off"></label></div><p class="help-text">序号决定轮值顺序。调整状态后，未来排期会自动更新。</p><div class="student-table-wrap"><table class="student-table"><thead><tr><th scope="col">轮值顺序</th><th scope="col">学生</th><th scope="col">当前状态</th><th scope="col">下次主讲</th><th scope="col">操作</th></tr></thead><tbody id="student-rows"></tbody></table></div><div id="students-empty" class="empty-state" hidden></div></section>
-      <section id="settings-view" class="view" hidden><div class="settings-grid"><form id="settings-form" class="settings-panel"><h2>轮值安排</h2><p class="help-text">从指定的周一开始，每周安排一位在校同学。</p><label class="field">首场组会日期<input id="start-date" name="startDate" type="date" min="2000-01-03" max="2100-12-27" required><span class="field-hint">请选择星期一。</span></label><label class="field">排期周数<input id="week-count" name="weeks" type="number" min="1" max="104" required><span class="field-hint">支持 1 至 104 周，名单结束后自动进入下一轮。</span></label><p id="settings-error" class="form-error" role="alert"></p><button class="button primary" type="submit">保存设置</button></form><div class="settings-side"><section class="settings-panel"><h2>排期规则</h2><div class="rule-item"><span>01</span><p><strong>每周一人，按序轮值</strong>在校同学按名单顺序循环主讲。</p></div><div class="rule-item"><span>02</span><p><strong>实习与暂停，自动跳过</strong>恢复在校后，按原来的位置参与后续轮值。</p></div><div class="rule-item"><span>03</span><p><strong>保留过去的组会记录</strong>名单修改只影响今天及之后的排期。</p></div></section><section class="settings-panel backup-panel"><h2>数据备份</h2><p class="help-text">数据保存在当前浏览器，不会自动同步到其他设备。换设备前，可以导出备份后再导入。</p><div class="backup-actions"><button class="button secondary" data-export="json">导出备份</button><button id="import-button" class="button secondary">导入备份</button></div><input id="import-file" type="file" accept="application/json,.json" hidden></section></div></div></section>
+      <section id="settings-view" class="view" hidden><div class="settings-grid"><form id="settings-form" class="settings-panel"><h2>轮值安排</h2><p class="help-text">从指定的周一开始，每周安排一位在校同学。</p><label class="field">首场组会日期<input id="start-date" name="startDate" type="date" min="2000-01-03" max="2100-12-27" required><span class="field-hint">请选择星期一。</span></label><label class="field">排期周数<input id="week-count" name="weeks" type="number" min="1" max="104" required><span class="field-hint">支持 1 至 104 周，名单结束后自动进入下一轮。</span></label><p id="settings-error" class="form-error" role="alert"></p><button class="button primary" type="submit">保存设置</button></form><div class="settings-side"><section class="settings-panel"><h2>排期规则</h2><div class="rule-item"><span>01</span><p><strong>每周一人，按序轮值</strong>在校同学按名单顺序循环主讲。</p></div><div class="rule-item"><span>02</span><p><strong>实习与暂停，自动跳过</strong>恢复在校后，按原来的位置参与后续轮值。</p></div><div class="rule-item"><span>03</span><p><strong>保留过去的组会记录</strong>名单修改只影响今天及之后的排期。</p></div></section><section class="settings-panel backup-panel"><h2>数据备份</h2><p class="help-text">备份和导入只影响本机草稿。导入后可继续编辑，由拥有仓库写入权限的成员发布后，其他同学才能看到更新。</p><div class="backup-actions"><button class="button secondary" data-export="json">导出备份</button><button id="import-button" class="button secondary">导入备份</button></div><input id="import-file" type="file" accept="application/json,.json" hidden></section></div></div></section>
       <footer class="page-footer"><span>周一见<span class="footer-divider">/</span>每一次交流，都让想法更近一步。</span><span id="range-footer"></span></footer>
     </main>
   </div>
   <dialog id="student-dialog" aria-labelledby="student-dialog-title"><form id="student-form"><div class="dialog-heading"><div><p class="dialog-kicker">轮值名单</p><h2 id="student-dialog-title">添加学生</h2></div><button class="icon-button" type="button" data-close="student-dialog" aria-label="关闭">×</button></div><label class="field">学生姓名<input id="student-name" name="studentName" type="text" maxlength="30" placeholder="请输入姓名" required autocomplete="off"></label><fieldset class="status-options"><legend>排会状态</legend><label><input type="radio" name="status" value="active" checked><span><strong>在校</strong><small>正常参与轮值</small></span></label><label><input type="radio" name="status" value="internship"><span><strong>实习</strong><small>暂不参与排期</small></span></label><label><input type="radio" name="status" value="paused"><span><strong>暂停</strong><small>暂不参与排期</small></span></label></fieldset><p class="dialog-hint" id="student-dialog-hint">新同学会加入名单末尾，参与后续轮值。</p><p id="student-error" class="form-error" role="alert"></p><div class="dialog-actions"><button id="delete-student" class="button danger-subtle" type="button" hidden>删除学生</button><div class="dialog-actions-right"><button class="button secondary" type="button" data-close="student-dialog">取消</button><button id="save-student" class="button primary" type="submit">添加学生</button></div></div></form></dialog>
   <dialog id="confirm-dialog" aria-labelledby="confirm-title"><div class="dialog-heading"><h2 id="confirm-title">确认操作</h2><button class="icon-button" data-close="confirm-dialog" aria-label="关闭">×</button></div><p id="confirm-description" class="confirm-description"></p><div class="dialog-actions-right"><button class="button secondary" data-close="confirm-dialog">取消</button><button id="confirm-action" class="button primary">确认</button></div></dialog>
+  <dialog id="publish-dialog" aria-labelledby="publish-dialog-title" aria-describedby="publish-summary">
+    <div class="dialog-heading"><div><p class="dialog-kicker">共享给课题组</p><h2 id="publish-dialog-title">发布到 GitHub</h2></div><button class="icon-button" type="button" data-close="publish-dialog" aria-label="关闭发布窗口">×</button></div>
+    <p id="publish-summary" class="publish-summary">将本机草稿发布为课题组共享排期。</p>
+    <p class="publish-permissions">普通访客可以在本机起草。只有拥有仓库写入权限的成员，才能完成上传并发布共享排期。</p>
+    <ol class="publish-steps">
+      <li><div><h3>下载排期文件</h3><p>下载当前草稿，文件名必须是 <code>schedule.json</code>。</p><button id="download-publication" class="button secondary" type="button">下载 schedule.json</button></div></li>
+      <li><div><h3>上传到 GitHub 仓库</h3><p>上传文件，覆盖仓库根目录的同名文件 <code>schedule.json</code>，然后选择 <strong>Commit changes</strong>，提交到 <code>main</code> 分支。</p><a id="github-upload" class="button secondary" href="https://github.com/cczzyqo/lab-meeting-scheduler/upload/main" target="_blank" rel="noopener noreferrer">打开 GitHub 上传页 <span aria-hidden="true">↗</span></a></div></li>
+      <li><div><h3>确认共享排期已更新</h3><p>等待 GitHub Pages 更新后，回到本页面点击“检查发布结果”。确认发布成功后，其他同学就能看到新排期。</p></div></li>
+    </ol>
+    <button id="acknowledge-version" class="button secondary" type="button" hidden>已核对，确认以草稿替换</button>
+    <p id="publish-result" role="status" hidden></p>
+    <p id="publish-error" class="form-error" role="alert"></p>
+    <div class="dialog-actions"><button class="button secondary" type="button" data-close="publish-dialog">稍后继续</button><div class="dialog-actions-right"><button id="check-publication" class="button primary" type="button">检查发布结果</button><button id="publish-complete" class="button primary" type="button" data-close="publish-dialog" hidden>完成</button></div></div>
+  </dialog>
   <div id="toast" class="toast" role="status" hidden></div>
   <noscript><div class="warning-banner">请启用 JavaScript，才能使用名单管理和自动排期。</div></noscript>
 </body>
